@@ -51,6 +51,8 @@ public class LibraryUserDetailService implements UserDetailsService {
         libraryUser.setUsername(libraryUserDto.getUsername());
         libraryUser.setPassword(bCryptPasswordEncoder
                 .encode(libraryUserDto.getPassword()));
+        libraryUser.setRoles(libraryUserDto.getRoles());
+        userDao.save(libraryUser);
         return libraryUserDto;
     }
 
