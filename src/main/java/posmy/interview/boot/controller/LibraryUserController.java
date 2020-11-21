@@ -7,19 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
-import posmy.interview.boot.constant.Constant;
-import posmy.interview.boot.dao.LibraryUserDao;
 import posmy.interview.boot.data.LibraryUser;
 import posmy.interview.boot.data.dto.LibraryUserDto;
 import posmy.interview.boot.service.LibraryUserDetailService;
-import posmy.interview.boot.service.LibraryUserService;
 
 import java.util.List;
 
@@ -48,18 +42,18 @@ public class LibraryUserController {
     LibraryUserDetailService libraryUserDetailsService;
      **/
     @Autowired
-    LibraryUserService libraryUserService;
+    LibraryUserDetailService libraryUserDetailService;
 
     @GetMapping(path)
     public List<LibraryUser> retrieveAll() {
-        return libraryUserService.retrieveAll();
+        return libraryUserDetailService.retrieveAll();
     }
 
     @PostMapping(value = path, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Secured(ROLE_LIBRARIAN)
     public LibraryUserDto createUser(@RequestBody LibraryUserDto libraryUserDto) {
-        return libraryUserService.createNewUser(libraryUserDto);
+        return libraryUserDetailService.createNewUser(libraryUserDto);
     }
 
     @DeleteMapping(value = path)
@@ -70,7 +64,7 @@ public class LibraryUserController {
         if (!user.getId().equals(id) && !auth.getAuthorities().contains(new SimpleGrantedAuthority(ROLE_LIBRARIAN))) {
             throw new AccessDeniedException("Cannot delete account that doesn't belongs to you!");
         }
-        libraryUserService.delete(id);
+        libraryUserDetailService.delete(id);
     }
 
 }

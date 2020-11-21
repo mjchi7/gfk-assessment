@@ -1,6 +1,5 @@
 package posmy.interview.boot.service;
 
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +39,23 @@ public class LibraryUserDetailService implements UserDetailsService {
         }
         logger.info("User " + s + " exists in database");
         return user.get();
+    }
+
+    public List<LibraryUser> retrieveAll() {
+        return userDao.findAll();
+    }
+
+    public LibraryUserDto createNewUser(LibraryUserDto libraryUserDto) {
+        LibraryUser libraryUser = new LibraryUser();
+        libraryUser.setUsername(libraryUserDto.getUsername());
+        libraryUser.setPassword(bCryptPasswordEncoder.encode(libraryUserDto.getPassword()));
+        return libraryUserDto;
+    }
+
+    public void delete(Long id) {
+        Optional<LibraryUser> user = userDao.findById(id);
+        LibraryUser u = user.get();
+        userDao.delete(u);
     }
 
     @PostConstruct

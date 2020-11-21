@@ -24,8 +24,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class LibraryUserDetailServiceTest {
+public class LibraryUserDetailServiceTest extends BaseTest{
 
     String INVALID_USERNAME = "INVALID_USER";
 
