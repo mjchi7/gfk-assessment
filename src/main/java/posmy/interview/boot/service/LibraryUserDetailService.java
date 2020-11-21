@@ -27,7 +27,8 @@ public class LibraryUserDetailService implements UserDetailsService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private static final Logger logger = LoggerFactory.getLogger(LibraryUserDetailService.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(LibraryUserDetailService.class);
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
@@ -48,7 +49,8 @@ public class LibraryUserDetailService implements UserDetailsService {
     public LibraryUserDto createNewUser(LibraryUserDto libraryUserDto) {
         LibraryUser libraryUser = new LibraryUser();
         libraryUser.setUsername(libraryUserDto.getUsername());
-        libraryUser.setPassword(bCryptPasswordEncoder.encode(libraryUserDto.getPassword()));
+        libraryUser.setPassword(bCryptPasswordEncoder
+                .encode(libraryUserDto.getPassword()));
         return libraryUserDto;
     }
 
@@ -70,7 +72,8 @@ public class LibraryUserDetailService implements UserDetailsService {
             newRootUser.setRoles(new ArrayList<>());
             userDao.save(newRootUser);
         } else {
-            logger.info("Bootstrapping root user skipped because username 'root' already exists");
+            logger.info("Bootstrapping root user skipped because username " +
+                    "'root' already exists");
         }
     }
 }
