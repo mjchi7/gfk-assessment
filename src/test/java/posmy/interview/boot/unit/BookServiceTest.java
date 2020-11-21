@@ -59,15 +59,14 @@ public class BookServiceTest extends BaseTest {
     @Test
     public void getBookbyId_isOk() {
         when(bookDao.findById(1L)).thenReturn(Optional
-                .ofNullable(this.mockedBooks.get(0)));
+                .of(this.mockedBooks.get(0)));
         Book book = bookService.getBookbyId(1L).get();
         assertEquals(book, mockedBooks.get(0));
     }
 
     @Test
     public void getBookById_notExist() {
-        when(bookDao.findById(2L)).thenReturn(Optional
-                .ofNullable(null));
+        when(bookDao.findById(2L)).thenReturn(Optional.empty());
         NoSuchElementException exp =
                 assertThrows(NoSuchElementException.class, () -> bookService
                         .getBookbyId((long) 2).get());
@@ -86,8 +85,11 @@ public class BookServiceTest extends BaseTest {
     public void borrow_isInvalidTransition_BookIsBorrowed() {
         Book bookUnderTest = this.mockedBooks.get(1);
         when(bookDao.findById(1L)).thenReturn(Optional.of(bookUnderTest));
-        InvalidTransitionException exp = assertThrows(InvalidTransitionException.class, () -> bookService.borrow(1L));
-        assertTrue(exp.getMessage().contains(Message.INVALID_TRANSIT_IS_BORROWED));
+        InvalidTransitionException exp =
+                assertThrows(InvalidTransitionException.class, () -> bookService
+                .borrow(1L));
+        assertTrue(exp.getMessage()
+                .contains(Message.INVALID_TRANSIT_IS_BORROWED));
     }
 
     @Test
@@ -104,8 +106,11 @@ public class BookServiceTest extends BaseTest {
         Book bookUnderTest = this.mockedBooks.get(0);
         when(bookDao.findById(1L)).thenReturn(Optional.of(bookUnderTest));
 
-        InvalidTransitionException exp = assertThrows(InvalidTransitionException.class, () -> bookService.returnBook(1L));
-        assertTrue(exp.getMessage().contains(Message.INVALID_TRANSIT_IS_RETURNED));
+        InvalidTransitionException exp =
+                assertThrows(InvalidTransitionException.class, () -> bookService
+                .returnBook(1L));
+        assertTrue(exp.getMessage()
+                .contains(Message.INVALID_TRANSIT_IS_RETURNED));
     }
 
     @Test
@@ -132,6 +137,7 @@ public class BookServiceTest extends BaseTest {
     @Test
     public void delete_isNotFound_BookNotExists() {
         when(bookDao.findById(1L)).thenReturn(Optional.ofNullable(null));
-        assertThrows(NoSuchElementException.class, () -> bookService.deleteBook(1L));
+        assertThrows(NoSuchElementException.class, () -> bookService
+                .deleteBook(1L));
     }
 }

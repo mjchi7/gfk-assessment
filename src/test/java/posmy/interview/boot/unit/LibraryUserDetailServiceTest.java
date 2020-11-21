@@ -24,7 +24,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-public class LibraryUserDetailServiceTest extends BaseTest{
+public class LibraryUserDetailServiceTest extends BaseTest {
 
     String INVALID_USERNAME = "INVALID_USER";
 
@@ -38,21 +38,28 @@ public class LibraryUserDetailServiceTest extends BaseTest{
 
     @Test
     public void loadUserByUsername_throwsException_invalidUser() {
-        when(libraryUserDao.findByUsername(INVALID_USERNAME)).thenReturn(Optional.empty());
+        when(libraryUserDao.findByUsername(INVALID_USERNAME))
+                .thenReturn(Optional.empty());
 
         assertNotNull(libraryUserDetailService);
         Exception exception = assertThrows(UsernameNotFoundException.class,
-                () -> libraryUserDetailService.loadUserByUsername(INVALID_USERNAME));
+                () -> libraryUserDetailService
+                        .loadUserByUsername(INVALID_USERNAME));
         assertNotNull(exception);
         assertNotNull(exception.getMessage());
-        assertTrue(exception.getMessage().contains("User " + INVALID_USERNAME + " not found"));
+        assertTrue(exception.getMessage()
+                .contains("User " + INVALID_USERNAME + " not found"));
     }
 
     @Test
     public void loadUserByUsername_hasUser_validUser() {
-        LibraryUser userUnderTest = new LibraryUser(Long.valueOf(1), VALID_USERNAME, "", new ArrayList<>());
-        when(libraryUserDao.findByUsername(VALID_USERNAME)).thenReturn(Optional.of(userUnderTest));
-        UserDetails user = libraryUserDetailService.loadUserByUsername(VALID_USERNAME);
+        LibraryUser userUnderTest = new LibraryUser(1L, VALID_USERNAME, "",
+                new ArrayList<>());
+
+        when(libraryUserDao.findByUsername(VALID_USERNAME))
+                .thenReturn(Optional.of(userUnderTest));
+        UserDetails user = libraryUserDetailService
+                .loadUserByUsername(VALID_USERNAME);
         assertNotNull(user);
         assertEquals(userUnderTest, user);
     }
