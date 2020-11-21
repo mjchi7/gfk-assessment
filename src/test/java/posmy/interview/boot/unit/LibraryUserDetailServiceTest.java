@@ -78,6 +78,8 @@ public class LibraryUserDetailServiceTest extends BaseTest {
                 .thenReturn(Optional.of(userUnderTest));
         UserDetails user = libraryUserDetailService
                 .loadUserByUsername(VALID_USERNAME);
+
+        verify(libraryUserDao, times(1)).findByUsername(VALID_USERNAME);
         assertNotNull(user);
         assertEquals(userUnderTest, user);
     }
@@ -89,6 +91,7 @@ public class LibraryUserDetailServiceTest extends BaseTest {
         List<LibraryUser> fetchedUsers = libraryUserDetailService.retrieveAll();
 
         assertEquals(this.users, fetchedUsers);
+        verify(libraryUserDao, times(1)).findAll();
     }
 
     @Test
