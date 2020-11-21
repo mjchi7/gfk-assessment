@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserControllerUnitTest extends BaseTest {
 
     @Autowired
@@ -53,7 +55,7 @@ public class UserControllerUnitTest extends BaseTest {
     @Autowired
     BCryptPasswordEncoder encoder;
 
-    @MockBean
+    @Autowired
     LibraryUserDao libraryUserDao;
 
     private static final String userUrl = "/api/user";
@@ -61,7 +63,6 @@ public class UserControllerUnitTest extends BaseTest {
     private String payload;
 
     private ObjectMapper objectMapper = new ObjectMapper();
-    
 
     @BeforeAll
     public void setupTest() throws Exception {
@@ -72,9 +73,7 @@ public class UserControllerUnitTest extends BaseTest {
         libraryUserDto.setRoles(Arrays.asList(new String[]{"MEMBER"}));
         this.payload = objectMapper.writer().withDefaultPrettyPrinter()
                 .writeValueAsString(libraryUserDto);
-
         // setup NO_ROLE_USER
-
     }
 
     @Test

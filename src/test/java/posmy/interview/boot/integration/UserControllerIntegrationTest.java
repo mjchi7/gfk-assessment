@@ -1,11 +1,16 @@
 package posmy.interview.boot.integration;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -19,7 +24,9 @@ import posmy.interview.boot.data.dto.LibraryUserDto;
 import java.util.Collections;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,7 +61,9 @@ public class UserControllerIntegrationTest {
     private final String ANNO_PASSWORD = "ANNO";
     private final List<String> ANNO_AUTHORITIES = Collections.emptyList();
 
-    private LibraryUserDto userToBeCreated;
+    private ObjectNode userToBeCreated;
+
+    private ArgumentCaptor<LibraryUser> libraryUserCaptor;
 
     @BeforeEach
     public void setupBeforeEachTest() {
@@ -71,19 +80,23 @@ public class UserControllerIntegrationTest {
         userDao.save(memberUser);
         userDao.save(annoUser);
 
-        this.userToBeCreated = new LibraryUserDto("user", "username",
-                Collections
-                        .emptyList());
+        ObjectNode userNode = mapper.createObjectNode();
+        userNode.put("username", "usernameValue");
+        userNode.put("password", "passwordValue");
+        userNode.putArray("roles");
+        this.userToBeCreated = userNode;
     }
 
     @Test
     public void createUser_isOk_WithLibrarian() throws Exception {
+
         mockMvc.perform(MockMvcRequestBuilders.post(this.userUrl)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(userToBeCreated))
                 .with(SecurityMockMvcRequestPostProcessors
                         .httpBasic(LIBRARIAN_USERNAME, LIBRARIAN_PASSWORD)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.password").doesNotHaveJsonPath());
     }
 
     @Test
