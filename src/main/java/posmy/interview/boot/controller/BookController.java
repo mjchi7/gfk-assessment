@@ -8,6 +8,7 @@ import posmy.interview.boot.constant.Constant;
 import posmy.interview.boot.data.Book;
 import posmy.interview.boot.service.BookService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -33,7 +34,7 @@ public class BookController {
     @PostMapping(path)
     @ResponseStatus(HttpStatus.CREATED)
     @Secured(Constant.ROLE_LIBRARIAN)
-    public Book create(@RequestBody Book book) {
+    public Book create(@Valid @RequestBody Book book) {
         return bookService.createBook(book);
     }
 

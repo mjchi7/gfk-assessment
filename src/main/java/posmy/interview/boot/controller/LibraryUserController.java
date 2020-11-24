@@ -28,19 +28,6 @@ public class LibraryUserController {
 
     private final static String path = "/user";
 
-    /** The following line causes circular dependencies between
-     *
-     * +->-+
-     * |   LibraryUserDetailService
-     * |   |
-     * |   WebSecurityConfiguration
-     * +-<-+
-     *
-     * Why? @TODO: Investigate
-     *
-    @Autowired
-    LibraryUserDetailService libraryUserDetailsService;
-     **/
     @Autowired
     LibraryUserDetailService libraryUserDetailService;
 
@@ -56,9 +43,9 @@ public class LibraryUserController {
         return libraryUserDetailService.createNewUser(libraryUserDto);
     }
 
-    @DeleteMapping(value = path)
+    @DeleteMapping(value = path + "/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(Long id) {
+    public void deleteUser(@PathVariable Long id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         LibraryUser user = (LibraryUser) auth.getPrincipal();
         if (!user.getId().equals(id) && !auth.getAuthorities().contains(new SimpleGrantedAuthority(ROLE_LIBRARIAN))) {

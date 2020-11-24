@@ -6,16 +6,18 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An AttributeConverter that converts a List of String into Comma Delimitered String,
- * and vice-versa
+ * An AttributeConverter that converts a List of String into Comma Delimitered
+ * String, and vice-versa
  */
-public class ListToStringConverter implements AttributeConverter<List<String>, String> {
+public class ListToStringConverter implements AttributeConverter<List<String>
+        , String> {
 
     @Override
     public String convertToDatabaseColumn(List<String> strings) {
-        if (strings.size() < 1) {
+        if (strings == null || strings.size() < 1) {
             // must return null to prevent it from returning an empty string.
-            // which will cause exception during libraryUser#getAuthority, because
+            // which will cause exception during libraryUser#getAuthority,
+            // because
             // new SimpleGrantedAuthority("") will be an error.
             return null;
         }

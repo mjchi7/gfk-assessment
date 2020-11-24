@@ -12,7 +12,7 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
-    // If this bean creation is done in WebSecurityConfiguration, it'll cause circular dependency.
+    // If this bean creation is done in WebSecurityConfiguaration, it'll cause circular dependency.
     // Which is understandable, because there's a @Autowired on the bcryptencoder.
     // but why it isn't a problem previously, until a new LibraryUserService is created?
     @Bean
