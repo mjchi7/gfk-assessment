@@ -1,12 +1,14 @@
 package posmy.interview.boot.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Example;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,9 +21,7 @@ import posmy.interview.boot.dao.LibraryUserDao;
 import posmy.interview.boot.data.Book;
 import posmy.interview.boot.service.BookService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
@@ -51,6 +51,8 @@ public class BookControllerIntegrationTest {
 
     private final String bookUrlReturn_isBorrowed = bookUrl + "/2" + "/return";
 
+    private final String bookUrlSearch = bookUrl + "/search";
+
     private final MediaType contentType = MediaType.APPLICATION_JSON;
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -76,6 +78,11 @@ public class BookControllerIntegrationTest {
         when(bookDao.findAll()).thenReturn(this.books);
         when(bookDao.findById(1L)).thenReturn(Optional.of(this.books.get(0)));
         when(bookDao.findById(2L)).thenReturn(Optional.of(this.books.get(1)));
+        when(bookDao.findAll(Example
+                .of(new Book(null, "Computer Networking", null))))
+                .thenReturn(Collections.singletonList(this.books.get(1)));
+        when(bookDao.findAll(Example.of(new Book(null, null, null))))
+                .thenReturn(this.books);
     }
 
     private Book getBookToBeCreated() {
@@ -419,4 +426,52 @@ public class BookControllerIntegrationTest {
         verify(bookDao, never()).save(any());
     }
 
+    // Tests for BookController#search
+    @Test
+    @WithMockUser(authorities = {Constant.ROLE_MEMBER})
+    public void search_isOk_isValidBody() throws Exception {
+
+        ObjectNode body = mapper.createObjectNode();
+        body.put("name", "Computer Networking");
+
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+                .post(this.bookUrlSearch).contentType(this.contentType)
+                .content(mapper.writeValueAsString(body));
+
+        mockMvc.perform(req)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    // Tests for BookController#search
+    @Test
+    @WithMockUser(authorities = {Constant.ROLE_MEMBER})
+    public void search_isOk_hasNoBody() throws Exception {
+
+        ObjectNode body = mapper.createObjectNode();
+
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+                .post(this.bookUrlSearch).contentType(this.contentType)
+                .content(mapper.writeValueAsString(body));
+
+        mockMvc.perform(req)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    // Tests for BookController#search
+    @Test
+    @WithMockUser(authorities = {Constant.ROLE_MEMBER})
+    public void search_isBadRequest_hasInvalidFieldName() throws Exception {
+
+        ObjectNode body = mapper.createObjectNode();
+        body.put("invalidField", "invalidValue");
+
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+                .post(this.bookUrlSearch).contentType(this.contentType)
+                .content(mapper.writeValueAsString(body));
+
+        mockMvc.perform(req)
+                .andExpect(status().isBadRequest());
+    }
 }

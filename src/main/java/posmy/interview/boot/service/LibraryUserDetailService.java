@@ -8,9 +8,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import posmy.interview.boot.constant.Message;
 import posmy.interview.boot.dao.LibraryUserDao;
 import posmy.interview.boot.data.LibraryUser;
 import posmy.interview.boot.data.dto.LibraryUserDto;
+import posmy.interview.boot.exception.PasswordMismatchException;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -47,6 +49,12 @@ public class LibraryUserDetailService implements UserDetailsService {
     }
 
     public LibraryUserDto createNewUser(LibraryUserDto libraryUserDto) {
+        if (!libraryUserDto.getPassword().equals(libraryUserDto.getConfirmPassword())) {
+            logger.info("Password mismatch");
+            logger.info("password: " + libraryUserDto.getPassword());
+            logger.info("confirmPassword: " + libraryUserDto.getConfirmPassword());
+            throw new PasswordMismatchException(Message.PASSWORD_MISMATCH);
+        }
         LibraryUser libraryUser = new LibraryUser();
         libraryUser.setUsername(libraryUserDto.getUsername());
         libraryUser.setPassword(bCryptPasswordEncoder

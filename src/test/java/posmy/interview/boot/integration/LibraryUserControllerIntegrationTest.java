@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import posmy.interview.boot.constant.Constant;
+import posmy.interview.boot.constant.Message;
 import posmy.interview.boot.dao.LibraryUserDao;
 import posmy.interview.boot.data.Book;
 import posmy.interview.boot.data.LibraryUser;
@@ -37,7 +38,6 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-//@WebMvcTest
 public class LibraryUserControllerIntegrationTest {
 
     @Autowired
@@ -61,7 +61,11 @@ public class LibraryUserControllerIntegrationTest {
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    private ObjectNode userToBeCreated;
+    private ObjectNode userToBeCreatedComplete;
+
+    private ObjectNode userToBeCreatedMissingConfirmPassword;
+
+    private ObjectNode userToBeCreatedPasswordMismatch;
 
     private LibraryUser basicUser;
 
@@ -75,13 +79,9 @@ public class LibraryUserControllerIntegrationTest {
     @BeforeEach
     public void setupMock() {
         if (!isInitialized) {
-            this.userToBeCreated = mapper.createObjectNode();
-            this.userToBeCreated.put("user", "new_user");
-            this.userToBeCreated.put("password", "password");
-
-            ArrayNode roles = this.userToBeCreated.putArray("roles");
-            roles.add(Constant.ROLE_LIBRARIAN.toString());
-
+            this.createUserToBeCreatedComplete();
+            this.createUserToBeCreatedMissingConfirmPassword();
+            this.createUserToBeCreatedPasswordMismatch();
             this.users = new ArrayList<>();
             this.basicUser = new LibraryUser(1L, "basic", "password",
                     new ArrayList<>());
@@ -118,17 +118,11 @@ public class LibraryUserControllerIntegrationTest {
         when(userDao.findById(any())).thenAnswer(i -> this.users.stream()
                 .filter(user -> user.getId().equals(i.getArgument(0)))
                 .findFirst());
-        /**
-         when(encoder.encode(any()))
-         .thenAnswer(i -> { System.out.println(i.getArguments()); return
-         "<encoded>" + (String) i.getArgument(0); });
-         */
-        when(encoder.encode(basicUser.getPassword()))
-                .thenReturn(basicUser.getPassword());
-        when(encoder.encode(memberUser.getPassword()))
-                .thenReturn(memberUser.getPassword());
-        when(encoder.encode(librarianUser.getPassword()))
-                .thenReturn(librarianUser.getPassword());
+
+        when(encoder.encode(any()))
+                .thenAnswer(i -> { System.out.println(i.getArguments()); return
+                        (String) i.getArgument(0); });
+
         when(encoder.matches(any(), any())).thenAnswer(i -> {
             logger.info("Argument 0: " + i.getArgument(0));
             logger.info("Argument 1: " + i.getArgument(1));
@@ -138,6 +132,36 @@ public class LibraryUserControllerIntegrationTest {
             }
             return false;
         });
+    }
+
+    private void createUserToBeCreatedMissingConfirmPassword() {
+        this.userToBeCreatedMissingConfirmPassword = mapper.createObjectNode();
+        this.userToBeCreatedMissingConfirmPassword = mapper.createObjectNode();
+        this.userToBeCreatedMissingConfirmPassword.put("username", "new_user");
+        this.userToBeCreatedMissingConfirmPassword.put("password", "password");
+
+        ArrayNode roles = this.userToBeCreatedMissingConfirmPassword.putArray("roles");
+        roles.add(Constant.ROLE_LIBRARIAN.toString());
+    }
+
+    private void createUserToBeCreatedComplete() {
+        this.userToBeCreatedComplete = mapper.createObjectNode();
+        this.userToBeCreatedComplete.put("username", "new_user");
+        this.userToBeCreatedComplete.put("password", "password");
+        this.userToBeCreatedComplete.put("confirmPassword", "password");
+
+        ArrayNode roles = this.userToBeCreatedComplete.putArray("roles");
+        roles.add(Constant.ROLE_LIBRARIAN.toString());
+    }
+
+    private void createUserToBeCreatedPasswordMismatch() {
+        this.userToBeCreatedPasswordMismatch = mapper.createObjectNode();
+        this.userToBeCreatedPasswordMismatch.put("username", "new_user");
+        this.userToBeCreatedPasswordMismatch.put("password", "password");
+        this.userToBeCreatedPasswordMismatch.put("confirmPassword", "mismatch");
+
+        ArrayNode roles = this.userToBeCreatedPasswordMismatch.putArray("roles");
+        roles.add(Constant.ROLE_LIBRARIAN.toString());
     }
 
     private RequestPostProcessor getBasicUser() {
@@ -199,7 +223,7 @@ public class LibraryUserControllerIntegrationTest {
     public void createUser_isNotAuthed_thenReturnUnauthorized() throws Exception {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .post(this.userUrl).contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated));
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete));
 
         mockMvc.perform(req).andExpect(status().isUnauthorized());
         verify(userDao, never()).save(any());
@@ -209,7 +233,7 @@ public class LibraryUserControllerIntegrationTest {
     public void createUser_doNotHaveAuthorities_thenReturnForbidden() throws Exception {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .post(this.userUrl).contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated))
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete))
                 .with(this.getBasicUser());
 
         mockMvc.perform(req).andExpect(status().isForbidden());
@@ -220,7 +244,7 @@ public class LibraryUserControllerIntegrationTest {
     public void createUser_isMember_thenReturnForbidden() throws Exception {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .post(this.userUrl).contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated))
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete))
                 .with(this.getMemberUser());
 
         mockMvc.perform(req).andExpect(status().isForbidden());
@@ -231,7 +255,7 @@ public class LibraryUserControllerIntegrationTest {
     public void createUser_isLibrarian_thenReturnOk() throws Exception {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .post(this.userUrl).contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated))
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete))
                 .with(this.getLibrarianUser());
 
         mockMvc.perform(req)
@@ -241,12 +265,26 @@ public class LibraryUserControllerIntegrationTest {
         verify(userDao, times(1)).save(any());
     }
 
+    @Test
+    public void createUser_isLibrarianPasswordMismatch_thenReturnBadRequest() throws Exception {
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+                .post(this.userUrl).contentType(this.contentType)
+                .content(mapper.writeValueAsString(this.userToBeCreatedPasswordMismatch))
+                .with(this.getLibrarianUser());
+
+        mockMvc.perform(req)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(Message.PASSWORD_MISMATCH));
+
+        verify(userDao, never()).save(any());
+    }
+
     // Tests for LibraryUserController#delete()
     @Test
     public void delete_isNotAuthed_thenReturnUnauthorized() throws Exception {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .delete(this.userUrl + "/1").contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated));
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete));
 
         mockMvc.perform(req).andExpect(status().isUnauthorized());
         verify(userDao, never()).save(any());
@@ -268,7 +306,7 @@ public class LibraryUserControllerIntegrationTest {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .delete(this.userUrl + "/" + this.memberUser.getId())
                 .contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated))
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete))
                 .with(this.getMemberUser());
 
         mockMvc.perform(req).andExpect(status().isNoContent());
@@ -276,10 +314,22 @@ public class LibraryUserControllerIntegrationTest {
     }
 
     @Test
+    public void delete_isMemberAndNotOwnAccount_thenReturnForbidden() throws Exception {
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+                .delete(this.userUrl + "/" + 999)
+                .contentType(this.contentType)
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete))
+                .with(this.getMemberUser());
+
+        mockMvc.perform(req).andExpect(status().isForbidden());
+        verify(userDao, never()).delete(any());
+    }
+
+    @Test
     public void delete_isLibrarian_thenReturnNoContent() throws Exception {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
                 .delete(this.userUrlId1).contentType(this.contentType)
-                .content(mapper.writeValueAsString(this.userToBeCreated))
+                .content(mapper.writeValueAsString(this.userToBeCreatedComplete))
                 .with(this.getLibrarianUser());
 
         mockMvc.perform(req)

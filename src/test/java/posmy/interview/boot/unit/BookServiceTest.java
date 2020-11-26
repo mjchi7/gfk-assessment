@@ -10,18 +10,18 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Example;
 import posmy.interview.boot.constant.BookStatus;
 import posmy.interview.boot.constant.Constant;
 import posmy.interview.boot.constant.Message;
 import posmy.interview.boot.dao.BookDao;
+import posmy.interview.boot.dao.query.BookExample;
 import posmy.interview.boot.data.Book;
+import posmy.interview.boot.exception.InvalidPayloadException;
 import posmy.interview.boot.exception.InvalidTransitionException;
 import posmy.interview.boot.service.BookService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -87,7 +87,7 @@ public class BookServiceTest extends BaseTest {
         when(bookDao.findById(1L)).thenReturn(Optional.of(bookUnderTest));
         InvalidTransitionException exp =
                 assertThrows(InvalidTransitionException.class, () -> bookService
-                .borrow(1L));
+                        .borrow(1L));
         assertTrue(exp.getMessage()
                 .contains(Message.INVALID_TRANSIT_IS_BORROWED));
     }
@@ -108,7 +108,7 @@ public class BookServiceTest extends BaseTest {
 
         InvalidTransitionException exp =
                 assertThrows(InvalidTransitionException.class, () -> bookService
-                .returnBook(1L));
+                        .returnBook(1L));
         assertTrue(exp.getMessage()
                 .contains(Message.INVALID_TRANSIT_IS_RETURNED));
     }
@@ -139,5 +139,45 @@ public class BookServiceTest extends BaseTest {
         when(bookDao.findById(1L)).thenReturn(Optional.ofNullable(null));
         assertThrows(NoSuchElementException.class, () -> bookService
                 .deleteBook(1L));
+    }
+
+    /**
+     * @Test public void search_isInvalidField_queryWithInvalidField() {
+     * assertThrows(InvalidPayloadException.class, () -> bookService
+     * .searchBook(Map .of("invalidField", "invalidValue"))); }
+     */
+
+    @Test
+    public void search_shouldGetAll_emptyQuery() {
+        when(bookDao.findAll(Example.of(new Book(null, null, null))))
+                .thenReturn(this.mockedBooks);
+        List<Book> returnedBooks = bookService
+                .searchBook(new BookExample(null, null, null));
+
+        assertEquals(this.mockedBooks, returnedBooks);
+    }
+
+    @Test
+    public void search_shouldGetByName_queryWithName() {
+        Book mockedBookList = this.mockedBooks.get(1);
+        when(bookDao.findAll(Example
+                .of(new Book(null, "Computer Networking", null))))
+                .thenReturn(Collections.singletonList(mockedBookList));
+        List<Book> returnedBooks = bookService
+                .searchBook(new BookExample(null, "Computer Networking", null));
+
+        assertEquals(Collections.singletonList(mockedBookList), returnedBooks);
+    }
+
+    @Test
+    public void search_shouldGetByStatus_queryWithStatus() {
+        Book mockedBookList = this.mockedBooks.get(1);
+        when(bookDao.findAll(Example
+                .of(new Book(null, null, BookStatus.BORROWED))))
+                .thenReturn(Collections.singletonList(mockedBookList));
+        List<Book> returnedBooks = bookService
+                .searchBook(new BookExample(null, null, BookStatus.BORROWED));
+
+        assertEquals(Collections.singletonList(mockedBookList), returnedBooks);
     }
 }

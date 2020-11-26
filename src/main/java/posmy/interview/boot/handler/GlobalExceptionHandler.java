@@ -13,6 +13,7 @@ import org.springframework.web.context.request.WebRequest;
 import posmy.interview.boot.constant.Message;
 import posmy.interview.boot.data.ephemeral.APIErrorData;
 import posmy.interview.boot.exception.InvalidTransitionException;
+import posmy.interview.boot.exception.PasswordMismatchException;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -55,6 +56,17 @@ public class GlobalExceptionHandler {
     public APIErrorData handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest req) {
         Map<String, Object> details = new HashMap<>();
         details.put("data", ex.getBindingResult().getAllErrors());
+        String xcpId = getXcpId();
+        APIErrorData data = new APIErrorData(xcpId, HttpStatus.BAD_REQUEST
+                .value(), ex.getMessage(), details);
+        logger.error(data.toString());
+        return data;
+    }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public APIErrorData handlePasswordMismatchException(PasswordMismatchException ex, WebRequest req) {
+        Map<String, Object> details = new HashMap<>();
         String xcpId = getXcpId();
         APIErrorData data = new APIErrorData(xcpId, HttpStatus.BAD_REQUEST
                 .value(), ex.getMessage(), details);

@@ -5,11 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import posmy.interview.boot.constant.Constant;
+import posmy.interview.boot.dao.query.BookExample;
 import posmy.interview.boot.data.Book;
 import posmy.interview.boot.service.BookService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Secured({Constant.ROLE_LIBRARIAN, Constant.ROLE_MEMBER})
@@ -24,6 +26,11 @@ public class BookController {
     public List<Book> retrieve() {
         // TODO: Add filter capability
         return bookService.getAllBooks();
+    }
+
+    @PostMapping(path + "/search")
+    public List<Book> search(@Valid @RequestBody BookExample query) {
+        return bookService.searchBook(query);
     }
 
     @GetMapping(path + "/{id}")

@@ -9,4 +9,8 @@ public class Message {
     public static final String OBJECT_NOT_FOUND_MESSAGE = "Requested object not found";
 
     public static final String INTERNAL_SERVER_ERROR_MESSAGE = "Unknown internal error occured";
+
+    public static final String PASSWORD_MISMATCH = "The password doesn't match";
+
+    public static final String INVALID_PAYLOAD_EXCEPTION = "The payload is invalid";
 }

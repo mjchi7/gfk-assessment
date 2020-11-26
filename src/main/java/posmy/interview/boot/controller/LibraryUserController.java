@@ -15,6 +15,7 @@ import posmy.interview.boot.data.LibraryUser;
 import posmy.interview.boot.data.dto.LibraryUserDto;
 import posmy.interview.boot.service.LibraryUserDetailService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 import static posmy.interview.boot.constant.Constant.ROLE_LIBRARIAN;
@@ -39,7 +40,7 @@ public class LibraryUserController {
     @PostMapping(value = path, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Secured(ROLE_LIBRARIAN)
-    public LibraryUserDto createUser(@RequestBody LibraryUserDto libraryUserDto) {
+    public LibraryUserDto createUser(@Valid @RequestBody LibraryUserDto libraryUserDto) {
         return libraryUserDetailService.createNewUser(libraryUserDto);
     }
 
